@@ -21,9 +21,9 @@ This program implements the interior point linear programming proposed by Noceda
 
 ## launch
 * cd bin
-* linprog datasetname  (folder name of the data set in the data folder)
+* linprog n10c04  (folder name of the data set in the data folder)
 
-## TO DO
+## To do
 * Add a more usual formulation for linear programming
 * Add sparse matrices management
 * Add preprocessing (delete dependent rows,...)
