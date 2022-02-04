@@ -1,12 +1,10 @@
-!> Build the restriction matrix for the aggregation
-!! method.
-!! @param aggr information about the aggregates
-!! @todo Handle special caseprogram main
+!> Main program in order to execute the linear program (linprosimp)
+!> Example of the command line : linpro n10c04
+!> the maximal number of iterations has to be modified in the code below.
 !-----------------------------------------------------------------------
-implicit none
+program main
 
-
-
+     implicit none
      integer :: num_args, allocock, i
      character(len=12), dimension(:), allocatable   :: args
      integer                                        :: nb_control_variables
@@ -21,7 +19,6 @@ implicit none
      double precision, dimension(:), allocatable    :: s
      integer                                        :: iter
      integer                                        :: info
-     
 
      ! parameters
      parameter(itermax = 1000)
