@@ -7,48 +7,45 @@
 !> @param A the matrix constraint
 !> @param b the vector constraint
 !> @param itermax the maximum number of iterations
+!> @param mutol duality measure threshold
 !> @param x the  primal solution
 !> @param lambda the dual solution
 !> @param s the  dual solution
-!> @param mu the  duality measure
 !> @param iter the number of iterations
 !> @param info information code
 
-!> @todo propose other inputs possibilities : linear equalities, linear inequalities, etc.
+!> @todo propose other inputs possibilities : linear inequalities, etc.
 !-----------------------------------------------------------------------
-SUBROUTINE linprosimp ( n, c, m, A, b, itermax, x, lambda, s, iter,  info )
-!-----------------------------------------------------------------------
-IMPLICIT NONE
+subroutine linprosimp ( n, c, m, A, b, itermax, mutol, x, lambda, s, iter,  info )
+implicit none
+!inputs
+integer                         , intent(in)  :: n
+double precision, dimension(n)  , intent(in)  :: c
+integer                         , intent(in)  :: m
+double precision, dimension(m,n), intent(in)  :: A
+double precision, dimension(m)  , intent(in)  :: b
+integer                         , intent(in)  :: itermax
+double precision                , intent(in)  :: mutol
+!outputs
+double precision, dimension(n)  , intent(out) :: x
+double precision, dimension(m)  , intent(out) :: lambda
+double precision, dimension(m)  , intent(out) :: s
+integer                         , intent(out) :: iter
+integer                         , intent(out) :: info
 
-INTEGER          :: n         !> @info information
-DOUBLE PRECISION :: c(n)      !> @c linear objective
-INTEGER          :: m         !> @m size
-DOUBLE PRECISION :: A(m, n)   !> @A constraint matrix
-DOUBLE PRECISION :: b(m)      !> @b vector matrix
-INTEGER          :: itermax   !> @itermax itermax
-
-DOUBLE PRECISION :: x(n)      !> @x primal solution
-DOUBLE PRECISION :: lambda(m) !> @lambda dual solution
-DOUBLE PRECISION :: s(n)      !> @s slack solution
-INTEGER          :: iter      !> @iter iter
-INTEGER          :: info      !> @info information
-
-! x calculous csup, x(n)
-
-
-DOUBLE PRECISION epsi, mu
+! local variables
+double precision epsi, mu
 #ifdef DEBUG
-INTEGER i, j
+integer i, j
 #endif
+double precision, dimension(:), allocatable :: x0
+double precision, dimension(:), allocatable :: lambda0
+double precision, dimension(:), allocatable :: s0
 
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x0
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda0
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: s0
+parameter(epsi=1.0d-15)
+external initlp, linprosimpx
 
-PARAMETER(epsi=1.0d-15)
-EXTERNAL initlp, linprosimpx
-
-
+! init
 info = 0
 
 #ifdef DEBUG
@@ -57,17 +54,16 @@ info = 0
   print*, "b =",  (b(i), i=1,m)
 #endif
 
-
+! allocations
 allocate(x0(n))
 allocate(lambda0(m))
 allocate(s0(n))
 
-print*, "coucou"
 ! initialization
-CALL initlp( m, n, A, b, c, x0, lambda0, s0, info )
+call initlp( m, n, A, b, c, x0, lambda0, s0, info )
 IF (info .LT. 0) THEN
-  RETURN
-ENDIF
+  return
+endIF
 
 
 #ifdef DEBUG
@@ -79,18 +75,21 @@ ENDIF
 #endif
 
 
-! algorithm
-CALL linprosimpx ( n, x0, lambda0, s0, c, m, A, b, itermax, &
+! linear program
+call linprosimpx ( n, x0, lambda0, s0, c, m, A, b, itermax, mutol, &
                    x, lambda, s, mu, iter, info  )
 
 #ifdef DEBUG
+  print*, "-><-"
+  print*, "results :"
   print*, "iter =", iter
   print*, "x =", (x(i), i=1,n)
   print*, "obj =", dot_product(c,x)
   print*, "info =", info
+  print*, "-><-"
 #endif
 
-RETURN
-END
+return
+end
 
 

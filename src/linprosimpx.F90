@@ -17,50 +17,51 @@
 !> @param iter the number of iterations
 !> @param info information code
 
-subroutine linprosimpx ( n, x0, lambda0, s0, c, m, A, b, itermax, x, lambda, s, mu, iter, info )
+subroutine linprosimpx ( n, x0, lambda0, s0, c, m, A, b, itermax, mutol, x, lambda, s, mu, iter, info )
 !-----------------------------------------------------------------------
-IMPLICIT NONE
+implicit none
+! inputs
+integer                         , intent(in)  :: n
+double precision, dimension(n),   intent(in)  :: x0
+double precision, dimension(m),   intent(in)  :: lambda0
+double precision, dimension(n),   intent(in)  :: s0
+double precision, dimension(n),   intent(in)  :: c
+integer                         , intent(in)  :: m
+double precision, dimension(m,n), intent(in)  :: A
+double precision, dimension(m),   intent(in)  :: b
+integer                         , intent(in)  :: itermax
 
-INTEGER                         , INTENT(in)  :: n
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in)  :: x0
-DOUBLE PRECISION, DIMENSION(m),   INTENT(in)  :: lambda0
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in)  :: s0
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in)  :: c
-INTEGER                         , INTENT(in)  :: m
-DOUBLE PRECISION, DIMENSION(m,n), INTENT(in)  :: A
-DOUBLE PRECISION, DIMENSION(m),   INTENT(in)  :: b
-INTEGER                         , INTENT(in)  :: itermax
-DOUBLE PRECISION, DIMENSION(n),   INTENT(out) :: x
-DOUBLE PRECISION, DIMENSION(m),   INTENT(out) :: lambda
-DOUBLE PRECISION, DIMENSION(n),   INTENT(out) :: s
-DOUBLE PRECISION                , INTENT(out) :: mu
-INTEGER                         , INTENT(out) :: iter
-INTEGER                         , INTENT(out) :: info
+!outputs
+double precision, dimension(n),   intent(out) :: x
+double precision, dimension(m),   intent(out) :: lambda
+double precision, dimension(n),   intent(out) :: s
+double precision                , intent(out) :: mu
+integer                         , intent(out) :: iter
+integer                         , intent(out) :: info
 
+! local variables
+integer i, j
+double precision alpha_dual, alpha_dual_aff, alpha_pri, alpha_pri_aff
+double precision mutol, eta, mini, mu_aff, ps, sigma
+double precision, dimension(:),   allocatable :: delta_x
+double precision, dimension(:),   allocatable :: delta_lambda
+double precision, dimension(:),   allocatable :: delta_s
+double precision, dimension(:),   allocatable :: rc
+double precision, dimension(:),   allocatable :: rb
+double precision, dimension(:),   allocatable :: rxs
+double precision, dimension(:),   allocatable :: temp1
+double precision, dimension(:),   allocatable :: temp2
+double precision, dimension(:),   allocatable :: delta_x_aff
+double precision, dimension(:),   allocatable :: delta_s_aff
+double precision, dimension(:,:), allocatable :: AD2A
+double precision, dimension(:,:), allocatable :: A3
+double precision, dimension(:),   allocatable :: xds
+double precision, dimension(:),   allocatable :: t2
 
-INTEGER i, j
-DOUBLE PRECISION alpha_dual, alpha_dual_aff, alpha_pri, alpha_pri_aff
-DOUBLE PRECISION epsimu, eta, mini, mu_aff, ps, sigma
+parameter(eta=0.99d0)
+external affinescaling, solvetriglp
 
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: delta_x
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: delta_lambda
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: delta_s
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: rc
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: rb
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: rxs
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: temp1
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: temp2
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: delta_x_aff
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: delta_s_aff
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: AD2A
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: A3
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: xds
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: t2
-
-PARAMETER(epsimu=1.0d-20, eta=0.99d0)
-EXTERNAL SOLVESPARSESYSLP, SOLVETRIGLP
-
-! allocation
+! allocations
 allocate(delta_x(n))
 allocate(delta_lambda(m))
 allocate(delta_s(n))
@@ -100,13 +101,13 @@ mu = ps/dble(n)
 #ifdef DEBUG
   print*, "mu=", mu
   print*, "iter=", iter
-  print*, "epsimu=", epsimu
+  print*, "mutol=", mutol
   print*, "itermax=", itermax
 #endif
 
 
 ! main loop
-DO WHILE ((mu .GT. epsimu).AND.(iter .LT.itermax))
+DO WHILE ((mu .GT. mutol).AND.(iter .LT.itermax))
     iter = iter + 1
 #ifdef DEBUG
     print*, "iter=", iter

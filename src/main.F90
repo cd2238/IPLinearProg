@@ -1,6 +1,6 @@
 !> Main program in order to execute the linear program (linprosimp)
 !> Example of the command line : linpro n10c04
-!> the maximal number of iterations has to be modified in the code below.
+!> the maximal number of iterations itermax, and the duality measure tolerance mutol has to be modified in the code below.
 !-----------------------------------------------------------------------
 program main
 
@@ -13,6 +13,8 @@ program main
      double precision, dimension(:,:), allocatable  :: constraint_matrix
      double precision, dimension(:), allocatable    :: constraint_vector
      integer                                        :: itermax
+     double precision                               :: mutol
+
 
      double precision, dimension(:), allocatable    :: x    
      double precision, dimension(:), allocatable    :: lambda   
@@ -21,8 +23,7 @@ program main
      integer                                        :: info
 
      ! parameters
-     parameter(itermax = 1000)
-
+     parameter(itermax = 1000, mutol=1.0d-10)
      ! read data
      num_args = command_argument_count()
      allocate(args(num_args))  ! 
@@ -74,7 +75,8 @@ program main
  
      ! perform optimization
      call linprosimp ( nb_control_variables, linear_objective, &
-                       nb_inequality_constraint, constraint_matrix, constraint_vector, itermax, &
+                       nb_inequality_constraint, constraint_matrix, constraint_vector, &
+                       itermax, mutol, &
                        x, lambda, s, iter, info )
 
      

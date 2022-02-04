@@ -14,61 +14,65 @@
 !> @param t2 -rb-AD^2rc (intermediary result to avoid redundancy)
 
 
-!>
-!>     Solve the system :
+!!
+!!     Solve the system :
 !!      [ 0  A' I ] [deltax     ]   [-rc ]
-!>      [ A  0  0 ] [deltalambda] = [-rb ]
-!>      [ S  0  X ] [deltas     ]   [-rxs]
-!>  with :
-!>         S = diag(s)
-!>         I = Id_n
-!>         X = diag(x)
-!>         D^2 = X*S^{-1}
-!>         rxs = XSe
-!-----------------------------------------------------------------------
+!!      [ A  0  0 ] [deltalambda] = [-rb ]
+!!      [ S  0  X ] [deltas     ]   [-rxs]
+!!  with :
+!!         S = diag(s)
+!!         I = Id_n
+!!         X = diag(x)
+!!         D^2 = X*S^{-1}
+!!         rxs = XSe
+!------------------------------------------------------------------------------------------------------------
 subroutine affinescaling ( m, n, A, s, x, rc, rb, rxs, deltax, deltalambda, deltas, AD2A, A3, xds, t2, info )
-!-----------------------------------------------------------------------
-IMPLICIT NONE
+implicit none
 
-INTEGER                         , INTENT(in) :: m
-INTEGER                         , INTENT(in) :: n
-DOUBLE PRECISION, DIMENSION(m,n), INTENT(in) :: A
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in) :: s
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in) :: x
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in) :: rc
-DOUBLE PRECISION, DIMENSION(m),   INTENT(in) :: rb
-DOUBLE PRECISION, DIMENSION(n),   INTENT(in) :: rxs
+! inputs
+integer                         , intent(in) :: m
+integer                         , intent(in) :: n
+double precision, dimension(m,n), intent(in) :: A
+double precision, dimension(n),   intent(in) :: s
+double precision, dimension(n),   intent(in) :: x
+double precision, dimension(n),   intent(in) :: rc
+double precision, dimension(m),   intent(in) :: rb
+double precision, dimension(n),   intent(in) :: rxs
 
-DOUBLE PRECISION, DIMENSION(n),   INTENT(out) :: deltax
-DOUBLE PRECISION, DIMENSION(m),   INTENT(out) :: deltalambda
-DOUBLE PRECISION, DIMENSION(n),   INTENT(out) :: deltas
-DOUBLE PRECISION, DIMENSION(m,m), INTENT(out) :: AD2A
-DOUBLE PRECISION, DIMENSION(m),   INTENT(out) :: t2
-DOUBLE PRECISION, DIMENSION(m,n), INTENT(out) :: A3
-DOUBLE PRECISION, DIMENSION(n),   INTENT(out) :: xds
-INTEGER                         , INTENT(out) :: info
+! outputs
+double precision, dimension(n),   intent(out) :: deltax
+double precision, dimension(m),   intent(out) :: deltalambda
+double precision, dimension(n),   intent(out) :: deltas
+double precision, dimension(m,m), intent(out) :: AD2A
+double precision, dimension(m),   intent(out) :: t2
+double precision, dimension(m,n), intent(out) :: A3
+double precision, dimension(n),   intent(out) :: xds
+integer                         , intent(out) :: info
 
-INTEGER i,j, mn, cho
-DOUBLE PRECISION prec, alpha, delta
+! local variables
+integer i,j, mn, cho
+double precision prec, alpha
 
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: d2
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: AD2
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b2
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b3
+double precision, dimension(:),   allocatable :: b
+double precision, dimension(:,:), allocatable :: d2
+double precision, dimension(:,:), allocatable :: AD2
+double precision, dimension(:),   allocatable :: b2
+double precision, dimension(:),   allocatable :: b3
 #ifdef DEBUG
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: u
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: v
+double precision, dimension(:),   allocatable :: u
+double precision, dimension(:),   allocatable :: v
 #endif
 
-EXTERNAL dpotrs, solvetriglp, modchol2
-PARAMETER(prec=1.0d-12, alpha = 1.0d-8, cho=1, delta=1.0d-10)
+external dpotrs, solvetriglp, modchol2
+parameter(prec=1.0d-12, alpha = 1.0d-8, cho=1)
 !cho = 0 : cholesky lapack
 !cho = 1 : modified cholesky
 
-
+! initialization
 mn=max(m,n)
 
+
+! allocations
 allocate(b(m))
 allocate(d2(n,n))
 allocate(AD2(m,n))
@@ -90,47 +94,44 @@ print*, "rb=[", (rb(i),i=1,m), "]'"
 print*, "rxs=[", (rxs(i),i=1,n), "]'"
 #endif
 
-! calculates AD^2A'
+! calculates AD^2A', A3, t2
 ! AD^2
 xds = x/s ! xs^-1
-DO j=1,n
+do j=1,n
   AD2(:,j) = A(:,j)*xds(j)
   A3(:,j)  = A(:,j)/s(j)
-ENDDO
-!print*, "AD2=[[", ((dwork(pdA2+(j-1)*m+i-1),j=1,n),char(10), i=1,m), "]]"
+enddo
 AD2A = matmul(AD2, transpose(A))
+t2 = -rb-matmul(AD2,rc)
+
+
 
 #ifdef DEBUG
 print*, "AD2A=[[", ((AD2A(i,j),j=1,m),char(10), i=1,m), "]]"
+print*, "t2=[",  (t2(i),i=1,m), "]'"
 #endif
 
-! calculates deltalambda(val provisoire) = -rb-AXS^-1rc
-t2 = -rb-matmul(AD2,rc)
-
-#ifdef DEBUG
-print*, "termb=[",  (t2(i),i=1,m), "]'"
-#endif
-
-! solves AD^2A' deltalambda = -rb-AXS^-1rc+AS^-1rxs
-IF (cho == 0) THEN
+! cholesky factorization
+if (cho == 0) then
   !  lapack cholesky
-  CALL dpotrf('L', m, AD2A, m, info) 
-ELSE ! cho==1
-  ! modified choleski
-  CALL modchol2( m, AD2A, delta, AD2A, info )
-ENDIF
-IF (info .NE. 0) THEN
-  RETURN
-ENDIF
+  call dpotrf('L', m, AD2A, m, info)
+else ! cho==1
+  ! modified cholesky
+  call modchol2( m, AD2A, AD2A, info )
+endif
+if (info .NE. 0) then
+  return
+endif
 
 #ifdef DEBUG
-PRINT*, "chol=[[", ((AD2A(i,j), j=1,m), char(10), i=1,m), "]]"
+print*, "chol=[[", ((AD2A(i,j), j=1,m), char(10), i=1,m), "]]"
 #endif
 
-CALL SOLVETRIGLP ( m, n, A, AD2A, A3, s, xds, rc, rxs, t2, deltax, deltalambda, deltas, info )
-IF (info .LT. 0) THEN
-  RETURN
-ENDIF
+! performs centering/corrector step
+call solvetriglp ( m, n, A, AD2A, A3, s, xds, rc, rxs, t2, deltax, deltalambda, deltas, info )
+if (info .LT. 0) then
+  return
+endif
 
 #ifdef DEBUG
 print*, "deltax=[", (deltax(i),i=1,n), "]'"
@@ -141,27 +142,27 @@ print*, "deltas=[", (deltas(i),i=1,n), "]'"
 #ifdef DEBUG
 !check the large newton equation
 u = matmul(transpose(A), deltalambda) + deltas
-IF (sum(abs(u+rc)).GT. prec) THEN
-  PRINT*, "prob 1:", sum(abs(u+rc))
+if (sum(abs(u+rc)).GT. prec) then
+  print*, "prob 1:", sum(abs(u+rc))
   !STOP
-ENDIF
+endif
 
 
 v = matmul(A, deltax)
-IF (sum(abs(v+rb)).GT. prec) THEN
-  PRINT*, "prob 2:", sum(abs(v+rb))
+if (sum(abs(v+rb)).GT. prec) then
+  print*, "prob 2:", sum(abs(v+rb))
   !STOP
-ENDIF
+endif
 
 u = s*deltax+x*deltas
-IF (sum(abs(u+rxs)).GT. prec) THEN
-  PRINT*, "prob 3:", sum(abs(u+rxs))
+if (sum(abs(u+rxs)).GT. prec) then
+  print*, "prob 3:", sum(abs(u+rxs))
   !STOP
-ENDIF
+endif
 #endif
 
 
-RETURN
-END
+return
+end
 
 
