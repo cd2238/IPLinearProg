@@ -9,8 +9,8 @@ else
 OPTS     += -O2
 endif
 IPLP = $(SRCPATH)affinescaling.o $(SRCPATH)linprosimpx.o $(SRCPATH)initlp.o \
-       $(SRCPATH)linprosimp.o  $(SRCPATH)linprog.o $(SRCPATH)solvetriglp.o \
-       $(SRCPATH)csup2cb.o  $(SRCPATH)modchol.o  $(SRCPATH)modchol2.o  
+       $(SRCPATH)linprosimp.o $(SRCPATH)solvetriglp.o \
+       $(SRCPATH)modchol.o  $(SRCPATH)modchol2.o  
 $(IPLP):$(FRC)
 
       
