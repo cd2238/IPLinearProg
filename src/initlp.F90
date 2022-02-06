@@ -74,7 +74,9 @@ x = bb
 !! lambda (overdetermined system)
 call DGELS('T', m, n, nrhs, AA, m, cc, mn, dwork, lwork, info)
 IF (info .LT. 0) THEN
+#ifdef DEBUG
   print*, "info=", info
+#endif
   return
 ENDIF
 lambda= cc

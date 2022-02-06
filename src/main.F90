@@ -37,11 +37,11 @@ program main
      end if
      open(12, file="../data/"//trim(args(1))//"/nb_control_variables.txt")
      read(12,*) nb_control_variables
-     print*, nb_control_variables
+     !print*, nb_control_variables
      close(12)
      open(12, file="../data/"//trim(args(1))//"/nb_inequality_constraint.txt")
      read(12,*) nb_inequality_constraint
-     print*, nb_inequality_constraint
+     !print*, nb_inequality_constraint
      close(12) 
      
      ! allocate arrays
@@ -54,14 +54,14 @@ program main
      
      open(12, file="../data/"//trim(args(1))//"/linear_objective.txt")
      read(12,*) linear_objective
-     print*, linear_objective
+     !print*, linear_objective
      close(12)
      open(12, file="../data/"//trim(args(1))//"/constraint_matrix.txt")
      read(12,*) constraint_matrix
      close(12) 
      open(12, file="../data/"//trim(args(1))//"/constraint_vector.txt")
      read(12,*) constraint_vector
-     print*, constraint_vector
+     !print*, constraint_vector
      close(12) 
 
      ! outputs

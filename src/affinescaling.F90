@@ -50,8 +50,11 @@ double precision, dimension(n),   intent(out) :: xds
 integer                         , intent(out) :: info
 
 ! local variables
-integer i,j, mn, cho
+integer mn, cho, j
 double precision prec, alpha
+#ifdef DEBUG
+integer i
+#endif
 
 double precision, dimension(:),   allocatable :: b
 double precision, dimension(:,:), allocatable :: d2

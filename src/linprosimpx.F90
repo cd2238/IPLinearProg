@@ -40,7 +40,10 @@ integer                         , intent(out) :: iter
 integer                         , intent(out) :: info
 
 ! local variables
-integer i, j
+integer i
+#ifdef DEBUG
+integer j
+#endif
 double precision alpha_dual, alpha_dual_aff, alpha_pri, alpha_pri_aff
 double precision mutol, eta, mini, mu_aff, ps, sigma
 double precision, dimension(:),   allocatable :: delta_x
@@ -201,14 +204,15 @@ DO WHILE ((mu .GT. mutol).AND.(iter .LT.itermax))
 #ifdef DEBUG
     print*, "s=", s
     print*, "alpha_dual=", alpha_dual
+    do i=1,n
+      if (s(i) < 0) then
+        print*, "s0 négatif!", s
+      endif
+    enddo
 #endif
 
     ! update
-    do i=1,n
-      if (s(i) < 0) then
-        print*, "s0 négatif!"
-      endif
-    enddo
+
     x = x + alpha_pri*delta_x
     lambda = lambda + alpha_dual*delta_lambda
     s  = s + alpha_dual*delta_s
