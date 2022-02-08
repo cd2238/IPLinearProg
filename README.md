@@ -3,9 +3,9 @@
 
 This program implements the interior point linear programming proposed by Nocedal and Wright. It uses a robust Choleski factorization described in Gill et al. It has been witten in order to better understand the interior point theory. It is not an operational solver !
 
- min c'x
- sc | Ax = b
-    | x >= 0
+ min c'x  
+ sc | Ax = b  
+    | x >= 0  
 
 
 ## References :
