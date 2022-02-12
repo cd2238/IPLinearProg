@@ -16,7 +16,7 @@
 
 !> @todo propose other inputs possibilities : linear inequalities, etc.
 !-----------------------------------------------------------------------
-subroutine linprosimp ( n, c, m, A, b, itermax, mutol, x, lambda, s, iter,  info )
+subroutine linprosimp ( n, c, m, A, b, itermax, mutol, x, lambda, s, fobj, iter,  info )
 implicit none
 !inputs
 integer                         , intent(in)  :: n
@@ -30,6 +30,7 @@ double precision                , intent(in)  :: mutol
 double precision, dimension(n)  , intent(out) :: x
 double precision, dimension(m)  , intent(out) :: lambda
 double precision, dimension(m)  , intent(out) :: s
+double precision                , intent(out) :: fobj
 integer                         , intent(out) :: iter
 integer                         , intent(out) :: info
 
@@ -78,6 +79,8 @@ endIF
 ! linear program
 call linprosimpx ( n, x0, lambda0, s0, c, m, A, b, itermax, mutol, &
                    x, lambda, s, mu, iter, info  )
+
+fobj = dot_product(c, x)
 
 #ifdef DEBUG
   print*, "-><-"
