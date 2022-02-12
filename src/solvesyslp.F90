@@ -18,30 +18,30 @@
 !          X = diag(x)
 !
 !-----------------------------------------------------------------------
-SUBROUTINE solvesyslp ( m, n, A, s, x, rc, rb, rxs, deltax, deltalambda, deltas, AD2A, A3, xds, t2, info )
+subroutine solvesyslp ( m, n, A, s, x, rc, rb, rxs, deltax, deltalambda, deltas, AD2A, A3, xds, t2, info )
 !-----------------------------------------------------------------------
-IMPLICIT NONE
-INTEGER info, m, n
-DOUBLE PRECISION A(m,n), s(n), x(n), rc(n), rb(m), rxs(n), xds(n)
-DOUBLE PRECISION deltax(n), deltalambda(m), deltas(n), AD2A(m,m), t2(m), A3(m,n)
+implicit none
+integer info, m, n
+double precision A(m,n), s(n), x(n), rc(n), rb(m), rxs(n), xds(n)
+double precision deltax(n), deltalambda(m), deltas(n), AD2A(m,m), t2(m), A3(m,n)
 
 
-INTEGER i,j, mn
-DOUBLE PRECISION prec, alpha, delta
-INTEGER cho
+integer i,j, mn
+double precision prec, alpha, delta
+integer cho
 
-EXTERNAL dpotrs, solvetriglp, modchol2
+external dpotrs, solvetriglp, modchol2
 
 
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: d2
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: AD2
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b2
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: b3
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: u
-DOUBLE PRECISION, DIMENSION(:),   ALLOCATABLE :: v
+double precision, dimension(:),   allocatable :: b
+double precision, dimension(:,:), allocatable :: d2
+double precision, dimension(:,:), allocatable :: AD2
+double precision, dimension(:),   allocatable :: b2
+double precision, dimension(:),   allocatable :: b3
+double precision, dimension(:),   allocatable :: u
+double precision, dimension(:),   allocatable :: v
 
-PARAMETER(prec=1.0d-12, alpha = 1.0d-8, cho=2, delta=1.0d-10)
+parameter(prec=1.0d-12, alpha = 1.0d-8, cho=2, delta=1.0d-10)
 !cho = 0 : cholesky lapack
 !cho = 2 : modified cholesky
 

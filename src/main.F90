@@ -91,7 +91,7 @@ program main
      print*, "Results :"
      print*, "x =", (x(i), i=1,nb_control_variables)
      print*, "obj =", dot_product(linear_objective,x)
-     print*, "constraints violated ? (violation if > 0)"
+     print*, "constraints violated ? (violation if != 0)"
      do i = 1, nb_inequality_constraint
         print*, "const ", i, ":", constraint_vector(i) - dot_product(constraint_matrix(i,:), x)
      enddo
